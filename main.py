@@ -9,7 +9,8 @@ uploaded_file = st.file_uploader("Load ZIP file from Spotify", type="zip")
 if uploaded_file is not None:
 
     # sprawdzenie czy w sesji jest już plik
-    already_processed = st.session_state.get("uploaded_filename") == uploaded_file.name
+    already_processed = st.session_state.get(
+        "uploaded_filename") == uploaded_file.name
 
     if not already_processed:
         with st.spinner("Loading..."):
