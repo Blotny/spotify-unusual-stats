@@ -33,6 +33,5 @@ class Event(Base):
     spotify_is_skip = Column(Boolean)
     offline = Column(Boolean)
     incognito_mode = Column(Boolean)
-    is_skip = Column(Boolean)
 
     upload = relationship("Upload", back_populates="events")
