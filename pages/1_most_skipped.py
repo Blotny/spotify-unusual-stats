@@ -9,26 +9,31 @@ if "upload_id" not in st.session_state:
 
 upload_id = st.session_state["upload_id"]
 
-session = SessionLocal()
-events = session.query(Event).filter(Event.upload_id == upload_id).all()
-session.close()
 
-st.write(len(events))
+@st.cache_data
+def load_events_df(upload_id):
+    session = SessionLocal()
+    events = session.query(Event).filter(Event.upload_id == upload_id).all()
+    session.close()
+
+    data = [
+        {
+            "ts": e.ts,
+            "track_name": e.track_name,
+            "artist_name": e.artist_name,
+            "ms_played": e.ms_played,
+            "reason_end": e.reason_end,
+            "spotify_is_skip": e.spotify_is_skip
+        }
+        for e in events
+    ]
+    return pd.DataFrame(data)
 
 
-data = [
-    {"ts":e.ts, "track_name": e.track_name, "artist_name": e.artist_name, "is_skip": e.is_skip}
-    for e in events
-]
-
-df = pd.DataFrame(data)
+df = load_events_df(upload_id)
 
 df["year"] = df["ts"].dt.year
 avaible_years = sorted(df["year"].unique())
-
-if "selected_years" not in st.session_state:
-    st.session_state["selected_years"] = avaible_years
-
 
 if "pills_years" not in st.session_state:
     st.session_state["pills_years"] = avaible_years
@@ -50,6 +55,23 @@ if not selected:
     st.warning("You must choose at least one year.")
     selected = st.session_state["pills_years"]
 
+# slider dla skipa
+use_raw_skips = st.checkbox("Show all Spotify-flagged skips (ignore duration)")
+
+
+# warunek z reason_end jest spowodowany nie zaliczaniem przez spotify
+# wielu skipów w latach 2018-2022 gdzie reason end było forward lub
+# back button ale skipped False
+
+if use_raw_skips:
+    df["is_skip"] = (df["spotify_is_skip"] |df["reason_end"].isin(["fwdbtn", "backbtn"]))
+else:
+    max_skip_seconds = st.slider("Max seconds to count as skip:", 1, 60, 30)
+    df["is_skip"] = (
+        (df["spotify_is_skip"] | df["reason_end"].isin(["fwdbtn", "backbtn"]))
+        & (df["ms_played"] < max_skip_seconds * 1000)
+    )
+
 # filtrowanie dla wybranych lat
 df_filtered = df[df["year"].isin(selected)]
 
@@ -68,7 +90,7 @@ grouped = grouped[grouped["plays"] >= 3]
 # wybor opcji sortowania
 sort_mode = st.radio(
     "Sort by:",
-    ["Skip rate", "Count of skips"]
+    ["Count of skips", "Skip rate"]
 )
 
 if sort_mode == "Skip rate":
@@ -77,5 +99,4 @@ else:
     grouped = grouped.sort_values("skips", ascending=False)
 
 
-
-st.dataframe(grouped.head(20), width="stretch", hide_index=True)
+st.dataframe(grouped.head(50), width="stretch", hide_index=True)
