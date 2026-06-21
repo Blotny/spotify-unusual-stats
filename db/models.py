@@ -10,6 +10,7 @@ class Upload(Base):
 
     id = Column(Integer, primary_key=True)
     filename = Column(String)
+    file_hash = Column(String(64), unique=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     events = relationship("Event", back_populates="upload")
 

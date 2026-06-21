@@ -7,8 +7,8 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-def load_dataframe(session, df, filename):
-    upload = Upload(filename=filename)
+def load_dataframe(session, df, filename, file_hash):
+    upload = Upload(filename=filename, file_hash=file_hash)
 
     session.add(upload)
     session.flush()

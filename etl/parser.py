@@ -1,5 +1,6 @@
 import zipfile
 import json
+import hashlib
 
 
 def extract_streaming_history(zip_path):
@@ -15,3 +16,10 @@ def extract_streaming_history(zip_path):
                 events.extend(json.load(f))
     
     return events
+
+
+def compute_file_hash(uploaded_file):
+    uploaded_file.seek(0)
+    file_hash = hashlib.sha256(uploaded_file.read()).hexdigest()
+    uploaded_file.seek(0)
+    return file_hash
