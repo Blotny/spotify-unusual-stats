@@ -44,8 +44,9 @@ fig = px.choropleth(
     locations="country_iso3",
     color="percent_of_listening",
     color_continuous_scale=["#b1e6c8", "#1DB954", "#0b5c2e"],
-    labels={"percent_of_listening": "% of listening"},
-    hover_name="conn_country"
+    labels={"percent_of_listening": "% of listening", "plays": "Plays"},
+    hover_name="conn_country",
+    hover_data={"plays": True, "country_iso3": False}
 )
 
 fig.update_geos(

@@ -56,7 +56,7 @@ with st.expander("Filters & sorting", expanded=True):
     if use_raw_skips:
         df["is_skip"] = (df["spotify_is_skip"] |df["reason_end"].isin(["fwdbtn", "backbtn"]))
     else:
-        max_skip_seconds = st.slider("Max seconds to count as skip:", 1, 60, 30)
+        max_skip_seconds = st.slider("Max seconds to count as skip:", 1, 60, 15)
         df["is_skip"] = (
             (df["spotify_is_skip"] | df["reason_end"].isin(["fwdbtn", "backbtn"]))
             & (df["ms_played"] < max_skip_seconds * 1000)
