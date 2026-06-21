@@ -2,6 +2,8 @@ import streamlit as st
 from etl.pipeline import pipeline
 
 
+st.set_page_config(layout="wide")
+
 st.title("Unusual Spotify Stats")
 
 uploaded_file = st.file_uploader("Load ZIP file from Spotify", type="zip")

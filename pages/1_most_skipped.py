@@ -2,33 +2,16 @@ from db.session import SessionLocal
 from db.models import Event
 import streamlit as st
 import pandas as pd
+from db.queries import load_events_df
+
+
+st.set_page_config(layout="wide")
 
 if "upload_id" not in st.session_state:
     st.warning("Load file on main page.")
     st.stop()
 
 upload_id = st.session_state["upload_id"]
-
-
-@st.cache_data
-def load_events_df(upload_id):
-    session = SessionLocal()
-    events = session.query(Event).filter(Event.upload_id == upload_id).all()
-    session.close()
-
-    data = [
-        {
-            "ts": e.ts,
-            "track_name": e.track_name,
-            "artist_name": e.artist_name,
-            "ms_played": e.ms_played,
-            "reason_end": e.reason_end,
-            "spotify_is_skip": e.spotify_is_skip
-        }
-        for e in events
-    ]
-    return pd.DataFrame(data)
-
 
 df = load_events_df(upload_id)
 
