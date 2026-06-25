@@ -47,8 +47,46 @@ country_df = country_df.dropna(subset=["country_iso3"])
 home_country = country_df.loc[country_df["percent_of_listening"].idxmax(), "conn_country"]
 home_country_name = get_country_name(home_country)
 
+# tytul
+st.title("Where you listened from")
+
+# metryki na poczatku strony
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric(
+        label="You have visited",
+        value=f"{len(country_df)} countries",
+        delta="based on your Spotify data",
+        delta_color="off",
+    )
+
+with col2:
+    st.metric(
+        label="Your home country is",
+        value=home_country_name,
+        delta="(probably)",
+        delta_color="off",
+    )
+
+
+# wizualne powiększenie checkboxa
+st.markdown(
+    """
+    <style>
+    [data-testid="stCheckbox"] {
+        transform: scale(1.5);
+        transform-origin: left;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# checkbox do ukrycia home country
 hide_home = st.checkbox(f"Hide home country ({home_country_name})")
 
+# dane do wykresu slupkowego
 chart_df = country_df.copy()
 if hide_home:
     chart_df = chart_df[chart_df["conn_country"] != home_country]
@@ -57,6 +95,8 @@ chart_df["is_home"] = chart_df["conn_country"] == home_country
 
 top_10_countries = chart_df.sort_values("percent_of_listening", ascending=False).head(10)
 
+
+# wykres słupkowy
 fig_bar = px.bar(
     top_10_countries,
     x="country_name",
@@ -83,10 +123,10 @@ fig = px.choropleth(
     country_df,
     locations="country_iso3",
     color="percent_of_listening",
-    color_continuous_scale=["#b1e6c8", "#1DB954", "#0b5c2e"],
+    color_continuous_scale=["#b1e6c8", "#14833B"],
     labels={"percent_of_listening": "% of listening", "plays": "Plays"},
     hover_name="country_name",
-    custom_data=["conn_country"],
+    custom_data=["conn_country", "plays"],
     hover_data={"plays": True, "country_iso3": False}
 )
 
@@ -106,12 +146,13 @@ fig.update_layout(
     plot_bgcolor="#0d1117",
     height=600,
     margin=dict(l=0, r=0, t=40, b=0),
-    title=dict(
-        text="Where you listened from",
-        font=dict(color="white", size=16),
-        x=0.01,
-    ),
     font=dict(color="white"),
+)
+
+fig.update_traces(
+    hovertemplate="<b style='font-size:16px'>%{hovertext}</b><br>"
+                  "Plays: %{customdata[1]}<br>"
+                  "%{z:.1f}% of listening<extra></extra>"
 )
 
 # proporcje mapa statystyki 2:1
