@@ -1,5 +1,3 @@
-from db.session import SessionLocal
-from db.models import Event
 import streamlit as st
 import pandas as pd
 from db.queries import load_events_df
@@ -20,6 +18,9 @@ avaible_years = sorted(df["year"].unique())
 
 if "pills_years" not in st.session_state:
     st.session_state["pills_years"] = avaible_years
+
+# tytul
+st.title("Who you skipped the most")
 
 with st.expander("Filters & sorting", expanded=True):
 
@@ -50,7 +51,7 @@ with st.expander("Filters & sorting", expanded=True):
 
 
     # warunek z reason_end jest spowodowany nie zaliczaniem przez spotify
-    # wielu skipów w latach 2018-2022 gdzie reason end było forward lub
+    # wielu skipów w latach 2015-2022 gdzie reason end było forward lub
     # back button ale skipped False
 
     if use_raw_skips:
@@ -65,56 +66,86 @@ with st.expander("Filters & sorting", expanded=True):
     # filtrowanie dla wybranych lat
     df_filtered = df[df["year"].isin(selected)]
 
-    # agregacja
-    grouped = df_filtered.groupby(["track_name", "artist_name"]).agg(
-        plays=("is_skip", "count"),
-        skips=("is_skip", "sum")
-    ).reset_index()
-
-    # metryki
-    grouped["skip_rate"] = grouped["skips"] / grouped["plays"]
-    grouped["dislike_score"] = (grouped["skips"] ** 2) / grouped["plays"]
-
-    # odrzucenie utworow odtworzonych mniej niz 3 razy
-    grouped = grouped[grouped["plays"] >= 3]
-
     # wybor opcji sortowania
     sort_mode = st.radio(
         "Sort by:",
-        ["Count of skips", "Skip rate", "Dislike score"],
+        ["Dislike score", "Count of skips", "Skip rate"],
         horizontal=True,
-        help="Dislike score = skips² / plays — combines how often you skip with how many real skips happened, weighting against tracks with few plays."
+        help="Dislike score = skips³ / plays² — combines skip count, skip frequency and total plays. "
+         "Penalizes tracks with high play counts but low skip rate more aggressively than the basic skip count."
     )
 
-    if sort_mode == "Skip rate":
-        grouped = grouped.sort_values(["skip_rate", "skips"], ascending=False)
-    elif sort_mode == "Dislike score":
-        grouped = grouped.sort_values("dislike_score", ascending=False)
-    else:
-        grouped = grouped.sort_values("skips", ascending=False)
-
+    
 # skladanie dataframe
+grouped_tracks = df_filtered.groupby(["track_name", "artist_name"]).agg(
+    plays=("is_skip", "count"),
+    skips=("is_skip", "sum")
+).reset_index()
 
-n_rows = len(grouped.head(50))
-table_height = (n_rows + 1) * 35 + 3
+grouped_artists = df_filtered.groupby("artist_name").agg(
+    plays=("is_skip", "count"),
+    skips=("is_skip", "sum")
+).reset_index()
 
-st.dataframe(grouped.head(50), 
-             width="stretch", 
-             hide_index=True,
-             height=table_height,
-             column_config={
-                 "track_name": st.column_config.TextColumn("Track name"),
-                 "artist_name": st.column_config.TextColumn("Artist"),
-                 "plays": st.column_config.NumberColumn("Plays"),
-                 "skips": st.column_config.NumberColumn("Skips"),
-                 "skip_rate": st.column_config.NumberColumn(
-                     "Skip rate", 
-                     format="percent", 
-                     help="Percentage of plays that were skipped (skips / plays). Tracks with very few plays can show misleadingly extreme values (e.g. 1 play + 1 skip = 100%)."
-                     ),
-                 "dislike_score": st.column_config.NumberColumn(
-                    "Dislike score",
-                    help="skips² / plays — combines skip frequency with total skip count, naturally de-weighting low-sample tracks."
-                    )
-             })
 
+# metryki
+for grouped in [grouped_tracks, grouped_artists]:
+    grouped["skip_rate"] = grouped["skips"] / grouped["plays"]
+    grouped["dislike_score"] = (grouped["skips"] ** 2) / grouped["plays"] * grouped["skip_rate"]
+
+# odrzucenie utworów odtworzonych mniej niż 3 razy
+grouped_tracks = grouped_tracks[grouped_tracks["plays"] >= 3]
+grouped_artists = grouped_artists[grouped_artists["plays"] >= 3]
+
+
+# sortowanie
+if sort_mode == "Skip rate":
+    grouped_tracks = grouped_tracks.sort_values(["skip_rate", "skips"], ascending=False)
+    grouped_artists = grouped_artists.sort_values(["skip_rate", "skips"], ascending=False)
+elif sort_mode == "Dislike score":
+    grouped_tracks = grouped_tracks.sort_values("dislike_score", ascending=False)
+    grouped_artists = grouped_artists.sort_values("dislike_score", ascending=False)
+else:
+    grouped_tracks = grouped_tracks.sort_values("skips", ascending=False)
+    grouped_artists = grouped_artists.sort_values("skips", ascending=False)
+
+
+# zakładki
+tab_tracks, tab_artists = st.tabs(["Tracks", "Artists"])
+
+with tab_tracks:
+    n_rows = len(grouped_tracks.head(50))
+    st.dataframe(
+        grouped_tracks.head(50),
+        width="stretch",
+        hide_index=True,
+        height=(n_rows + 1) * 35 + 3,
+        column_config={
+            "track_name": st.column_config.TextColumn("Track name"),
+            "artist_name": st.column_config.TextColumn("Artist"),
+            "plays": st.column_config.NumberColumn("Plays"),
+            "skips": st.column_config.NumberColumn("Skips"),
+            "skip_rate": st.column_config.NumberColumn("Skip rate", format="percent",
+                help="Percentage of plays that were skipped."),
+            "dislike_score": st.column_config.NumberColumn("Dislike score",
+                help="skips³ / plays²"),
+        }
+    )
+
+with tab_artists:
+    n_rows = len(grouped_artists.head(50))
+    st.dataframe(
+        grouped_artists.head(50),
+        width="stretch",
+        hide_index=True,
+        height=(n_rows + 1) * 35 + 3,
+        column_config={
+            "artist_name": st.column_config.TextColumn("Artist"),
+            "plays": st.column_config.NumberColumn("Plays"),
+            "skips": st.column_config.NumberColumn("Skips"),
+            "skip_rate": st.column_config.NumberColumn("Skip rate", format="percent",
+                help="Percentage of plays that were skipped."),
+            "dislike_score": st.column_config.NumberColumn("Dislike score",
+                help="skips³ / plays²"),
+        }
+    )
