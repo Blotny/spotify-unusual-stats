@@ -113,13 +113,22 @@ else:
 # zakładki
 tab_tracks, tab_artists = st.tabs(["Tracks", "Artists"])
 
+# 20 rekordów podstawowo
+if "n_tracks" not in st.session_state:
+    st.session_state["n_tracks"] = 20
+
+if "n_artists" not in st.session_state:
+    st.session_state["n_artists"] = 20
+
 with tab_tracks:
-    n_rows = len(grouped_tracks.head(50))
+    n = st.session_state["n_tracks"]
+    total = len(grouped_tracks)
+
     st.dataframe(
-        grouped_tracks.head(50),
+        grouped_tracks.head(n),
         width="stretch",
         hide_index=True,
-        height=(n_rows + 1) * 35 + 3,
+        height=(len(grouped_tracks.head(n)) + 1) * 35 + 3,
         column_config={
             "track_name": st.column_config.TextColumn("Track name"),
             "artist_name": st.column_config.TextColumn("Artist"),
@@ -132,13 +141,22 @@ with tab_tracks:
         }
     )
 
+    if n < total:
+        _, center, _ = st.columns([2, 1, 2])
+        with center:
+            if st.button(f"See more (showing {n} of {total})", key="btn_tracks"):
+                st.session_state["n_tracks"] += 20
+                st.rerun()
+
 with tab_artists:
-    n_rows = len(grouped_artists.head(50))
+    n = st.session_state["n_artists"]
+    total = len(grouped_artists)
+
     st.dataframe(
-        grouped_artists.head(50),
+        grouped_artists.head(n),
         width="stretch",
         hide_index=True,
-        height=(n_rows + 1) * 35 + 3,
+        height=(len(grouped_artists.head(n)) + 1) * 35 + 3,
         column_config={
             "artist_name": st.column_config.TextColumn("Artist"),
             "plays": st.column_config.NumberColumn("Plays"),
@@ -149,3 +167,10 @@ with tab_artists:
                 help="skips³ / plays²"),
         }
     )
+
+    if n < total:
+        _, center, _ = st.columns([2, 1, 2])
+        with center:
+            if st.button(f"See more (showing {n} of {total})", key="btn_artists"):
+                st.session_state["n_artists"] += 20
+                st.rerun()

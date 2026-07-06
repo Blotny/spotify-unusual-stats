@@ -168,6 +168,7 @@ with map_col:
         key="country_map_chart",
     )
 
+# boczny panel mapy
 with stats_col:
     if event.selection and event.selection["points"]:
         # wyciagniecie nazwy panstwa
@@ -208,7 +209,13 @@ with stats_col:
             top_artists["minutes"] = (top_artists["total_ms"] / 60_000).round(1)
             top_artists = top_artists.drop(columns=["total_ms"]).sort_values("minutes", ascending=False)
             
-            st.dataframe(top_artists.head(10), hide_index=True, width="stretch")
+            st.dataframe(top_artists.head(10), 
+                         hide_index=True, 
+                         width="stretch",
+                         column_config={
+                            "artist_name": st.column_config.TextColumn("Artist"),
+                            "plays": st.column_config.TextColumn("Plays"),
+                            "minutes": st.column_config.TextColumn("Minutes"),})
 
         if st.session_state["stats_view"] == "songs":
 
@@ -221,6 +228,13 @@ with stats_col:
             top_songs["minutes"] = (top_songs["total_ms"] / 60_000).round(1)
             top_songs = top_songs.drop(columns=["total_ms"]).sort_values("minutes", ascending=False)
 
-            st.dataframe(top_songs.head(10), hide_index=True, width="stretch")
+            st.dataframe(top_songs.head(10), 
+                         hide_index=True, 
+                         width="stretch",
+                         column_config={
+                            "track_name": st.column_config.TextColumn("Track name"),
+                            "artist_name": st.column_config.TextColumn("Artist"),
+                            "plays": st.column_config.TextColumn("Plays"),
+                            "minutes": st.column_config.TextColumn("Minutes")})
     else:
         st.info("Click a country on the map to see stats.")
