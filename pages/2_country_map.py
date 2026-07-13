@@ -53,14 +53,15 @@ def show_country_details(country_code, country_name, all_countries, df):
 
     tab_artists, tab_songs = st.tabs(["Artists", "Songs"]) 
 
+    # w country details wyswietlamy 200 rekordów
     with tab_artists:
-        render_top_artists(country_filtered, st.session_state["n_artists_details"], "details", show_see_more=True)
+        render_top_artists(country_filtered, 200)
     
     with tab_songs:
-        render_top_songs(country_filtered, st.session_state["n_songs_details"], "details", show_see_more=True)
+        render_top_songs(country_filtered, 200)
 
 # agregacja po artystach
-def render_top_artists(filtered_df, n, key_suffix, show_see_more=True):
+def render_top_artists(filtered_df, n):
     top_artists = (
         filtered_df.groupby("artist_name")
         .agg(plays=("ms_played", "count"), total_ms=("ms_played", "sum"))
@@ -69,27 +70,20 @@ def render_top_artists(filtered_df, n, key_suffix, show_see_more=True):
     top_artists["minutes"] = (top_artists["total_ms"] / 60_000).round(1)
     top_artists = top_artists.drop(columns=["total_ms"]).sort_values("minutes", ascending=False)
 
-    total = len(top_artists)
     st.dataframe(
         top_artists.head(n),
         hide_index=True,
         width="stretch",
-        height=(len(top_artists.head(n)) + 1) * 35 + 3,
         column_config={
             "artist_name": st.column_config.TextColumn("Artist"),
             "plays": st.column_config.NumberColumn("Plays"),
             "minutes": st.column_config.NumberColumn("Minutes"),
         }
     )
-    if show_see_more and n < total:
-        _, center, _ = st.columns([2, 1, 2])
-        with center:
-            if st.button(f"See more ({n} of {total})", key=f"btn_artists_{key_suffix}"):
-                st.session_state[f"n_artists_{key_suffix}"] += 20
-                st.rerun()
+
 
 # agregacja po piosenkach
-def render_top_songs(filtered_df, n, key_suffix, show_see_more=True):
+def render_top_songs(filtered_df, n):
     top_songs = (
         filtered_df.groupby(["track_name", "artist_name"])
         .agg(plays=("ms_played", "count"), total_ms=("ms_played", "sum"))
@@ -98,12 +92,10 @@ def render_top_songs(filtered_df, n, key_suffix, show_see_more=True):
     top_songs["minutes"] = (top_songs["total_ms"] / 60_000).round(1)
     top_songs = top_songs.drop(columns=["total_ms"]).sort_values("minutes", ascending=False)
 
-    total = len(top_songs)
     st.dataframe(
         top_songs.head(n),
         hide_index=True,
         width="stretch",
-        height=(len(top_songs.head(n)) + 1) * 35 + 3,
         column_config={
             "track_name": st.column_config.TextColumn("Track name"),
             "artist_name": st.column_config.TextColumn("Artist"),
@@ -111,12 +103,6 @@ def render_top_songs(filtered_df, n, key_suffix, show_see_more=True):
             "minutes": st.column_config.NumberColumn("Minutes"),
         }
     )
-    if show_see_more and n < total:
-        _, center, _ = st.columns([2, 1, 2])
-        with center:
-            if st.button(f"See more ({n} of {total})", key=f"btn_songs_{key_suffix}"):
-                st.session_state[f"n_songs_{key_suffix}"] += 20
-                st.rerun()
 
 country_df["country_iso3"] = country_df["conn_country"].apply(alpha2_to_alpha3)
 country_df["country_name"] = country_df["conn_country"].apply(get_country_name)
@@ -287,16 +273,11 @@ with stats_col:
 
         country_df_filtered = df[df["conn_country"] == clicked_country_code]
 
-        if "n_artists_details" not in st.session_state:
-            st.session_state["n_artists_details"] = 20
-        if "n_songs_details" not in st.session_state:
-            st.session_state["n_songs_details"] = 20
-
         if st.session_state["stats_view"] == "artists":
-            render_top_artists(country_df_filtered, 10, "sidebar", show_see_more=False)
+            render_top_artists(country_df_filtered, 10)
 
         else:
-            render_top_songs(country_df_filtered, 10, "sidebar", show_see_more=False)
+            render_top_songs(country_df_filtered, 10)
         
         # przycisk see more
         _, center, _ = st.columns([1, 1, 1])
