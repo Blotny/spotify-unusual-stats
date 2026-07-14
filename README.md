@@ -17,19 +17,21 @@ per-track/artist skip rates, and a world map of where you actually listened from
 - Most skipped tracks and artists, with adjustable minimum play count to filter out noise
 - Adjustable skip threshold (in seconds) — skip detection is computed dynamically, not
   baked into the database, so you can tune what counts as a "skip" on the fly
-- Toggle to show Spotify's own skip flag instead of the duration-based heuristic
-- Sort by skip count, skip rate, or a combined "dislike score" (`skips² / plays`) that
+- Sort by skip count, skip rate, or a combined "dislike score" (`skips³ / plays²`) that
   balances frequency against sample size
 - Year filter (multi-select pills, with a "select all" shortcut)
 
 ### Country Map page
-- Choropleth world map showing % of listening time per country, with a custom
-  dark theme matching the rest of the app
+- Header metrics: total countries visited, detected home country
+- Choropleth world map showing % of listening time per country
 - Click a country to drill down into its top artists and top songs, shown in a
   side panel next to the map
 - Bar chart of listening % by country, with automatic home-country detection
   and a toggle to hide it (so smaller countries are easier to compare)
-- Header metrics: total countries visited, detected home country
+
+
+### Early Spotify Wrapped
+in progress...
 
 ## Why some design decisions look the way they do
 
@@ -129,12 +131,3 @@ pytest tests/ -q
   "phantom" countries with very low play counts.
 - No genre, mood, or audio-feature data — these are no longer available
   through Spotify's public API for new integrations.
-
-## Possible future directions
-
-- Skip-prediction model (classification) using time-of-day, platform, shuffle,
-  and artist as features
-- Shareable links via a non-guessable `public_id` instead of exposing
-  database IDs
-- Listening-session detection and "marathon" stats
-- LLM-generated natural-language summary of a user's listening year
