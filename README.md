@@ -1,0 +1,140 @@
+# Unusual Spotify Stats
+
+A Streamlit app that turns your Spotify "Extended Streaming History" export into
+statistics you won't find in Spotify Wrapped — adjustable skip detection,
+per-track/artist skip rates, and a world map of where you actually listened from.
+
+## Features
+
+### Upload & processing
+- Upload your Spotify data export (`.zip`) directly in the browser
+- ETL pipeline: parses the export, strips personal fields (IP address, username),
+  filters out podcasts/audiobooks, and loads clean events into a database
+- Deduplication via file hash — re-uploading the same export won't create duplicate data
+- Local dev works out of the box with SQLite; production uses a free Neon (Postgres) database
+
+### Most Skipped page
+- Most skipped tracks and artists, with adjustable minimum play count to filter out noise
+- Adjustable skip threshold (in seconds) — skip detection is computed dynamically, not
+  baked into the database, so you can tune what counts as a "skip" on the fly
+- Toggle to show Spotify's own skip flag instead of the duration-based heuristic
+- Sort by skip count, skip rate, or a combined "dislike score" (`skips² / plays`) that
+  balances frequency against sample size
+- Year filter (multi-select pills, with a "select all" shortcut)
+
+### Country Map page
+- Choropleth world map showing % of listening time per country, with a custom
+  dark theme matching the rest of the app
+- Click a country to drill down into its top artists and top songs, shown in a
+  side panel next to the map
+- Bar chart of listening % by country, with automatic home-country detection
+  and a toggle to hide it (so smaller countries are easier to compare)
+- Header metrics: total countries visited, detected home country
+
+## Why some design decisions look the way they do
+
+- **Skip detection isn't a single boolean.** Spotify's own `skipped` field is
+  inconsistently recorded (notably broken for several years in the past), so this
+  app keeps the raw signals (`ms_played`, `reason_end`, `skipped`) and computes
+  skip status dynamically per query, controlled by a threshold the user can adjust.
+- **No audio features (energy, valence, danceability, etc.).** Spotify restricted
+  API access to these in late 2024, and using them to train ML models is against
+  Spotify's developer terms — so this project is built entirely from the
+  streaming history export plus catalog metadata.
+- **Personal data isn't retained.** IP addresses and usernames are dropped during
+  the ETL step and never stored.
+
+## Tech stack
+
+- **Frontend:** [Streamlit](https://streamlit.io)
+- **Database:** PostgreSQL via [Neon](https://neon.tech) (free tier) / SQLite for local dev
+- **ORM:** SQLAlchemy
+- **Data processing:** pandas
+- **Visualization:** Plotly
+- **Country code conversion:** pycountry
+
+## Project structure
+
+```
+spotify-unusual-stats/
+├── main.py                      # Streamlit entry point (upload UI)
+├── pages/
+│   ├── 1_most_skipped.py        # skip stats page
+│   └── 2_country_map.py         # country map + drill-down page
+├── db/
+│   ├── models.py                # SQLAlchemy models (Upload, Event)
+│   ├── session.py                # DB connection, session factory, init_db()
+│   └── queries.py                # shared, cached data-loading + lookup queries
+├── etl/
+│   ├── parser.py                 # ZIP -> raw list of dicts
+│   ├── transform.py              # cleaning, PII removal, dataframe shaping
+│   ├── load.py                   # dataframe -> database
+│   └── pipeline.py               # orchestrates parser -> transform -> load
+├── tests/
+│   └── test_transform.py
+├── .env.example
+├── requirements.txt
+└── README.md
+```
+
+## Setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env`. Leave `DATABASE_URL` unset to use local SQLite,
+or point it at a Neon Postgres connection string for production-like storage.
+
+### Setting up Neon (optional, for persistent/shared storage)
+
+1. Create a free project at [neon.tech](https://neon.tech) (no card required)
+2. Copy the connection string from the dashboard
+3. Paste it into `.env` as `DATABASE_URL` (keep `?sslmode=require` at the end)
+
+## Getting your Spotify data
+
+1. Go to your [Spotify account privacy settings](https://www.spotify.com/account/privacy/)
+2. Under "Download your data", select **only** "Extended streaming history"
+   (not "Account data" — that only covers the last year)
+3. Confirm via the email Spotify sends you
+4. Wait for the second email with the download link (usually a few days,
+   officially up to 30)
+
+## Running the app
+
+```bash
+streamlit run main.py
+```
+
+Upload the `.zip` file from your Spotify export on the main page, then use the
+sidebar to navigate to the stats pages.
+
+## Running tests
+
+```bash
+pytest tests/ -q
+```
+
+## Known limitations
+
+- Skip detection is a heuristic, not ground truth — Spotify doesn't document
+  exactly how its own `skipped` field is calculated, and the export doesn't
+  include full track length, so very short tracks listened to in full can
+  occasionally be misclassified.
+- `conn_country` is derived from IP address at playback time, not GPS — VPNs,
+  ISP routing quirks, or remote Spotify Connect sessions can produce occasional
+  "phantom" countries with very low play counts.
+- No genre, mood, or audio-feature data — these are no longer available
+  through Spotify's public API for new integrations.
+
+## Possible future directions
+
+- Skip-prediction model (classification) using time-of-day, platform, shuffle,
+  and artist as features
+- Shareable links via a non-guessable `public_id` instead of exposing
+  database IDs
+- Listening-session detection and "marathon" stats
+- LLM-generated natural-language summary of a user's listening year
