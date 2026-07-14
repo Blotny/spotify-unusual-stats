@@ -114,11 +114,6 @@ streamlit run main.py
 Upload the `.zip` file from your Spotify export on the main page, then use the
 sidebar to navigate to the stats pages.
 
-## Running tests
-
-```bash
-pytest tests/ -q
-```
 
 ## Known limitations
 
