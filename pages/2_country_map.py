@@ -1,6 +1,5 @@
 import streamlit as st
 from db.queries import load_events_df
-import pandas as pd
 import plotly.express as px
 import pycountry
 
