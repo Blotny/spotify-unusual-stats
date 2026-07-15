@@ -70,9 +70,6 @@ spotify-unusual-stats/
 │   ├── transform.py              # cleaning, PII removal, dataframe shaping
 │   ├── load.py                   # dataframe -> database
 │   └── pipeline.py               # orchestrates parser -> transform -> load
-├── tests/
-│   └── test_transform.py
-├── .env.example
 ├── requirements.txt
 └── README.md
 ```
