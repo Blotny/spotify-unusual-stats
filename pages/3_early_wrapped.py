@@ -18,17 +18,35 @@ today = datetime.now()
 current_year = today.year
 day_of_year = today.timetuple().tm_yday
 
+avaible_years = sorted(df["ts"].dt.year.unique(), reverse=True)
+
+# tytul i opis
+st.title("Early Spotify Wrapped")
+st.markdown(
+    """
+    See your Spotify Wrapped before Spotify releases it — or revisit any previous year. 
+    Pick a year above to explore your top artists, songs, biggest listening day, 
+    and how your listening was spread across months and days of the week.
+    
+    Note: stats for previous years may not match your official Wrapped exactly — 
+    Spotify Wrapped covers January 1 to mid-November, while this page uses 
+    your full year of data including late November and December.
+    """
+)
+# selectbox do lat
+selected_year = st.selectbox("Year:", avaible_years)
+
 # df dla tego roku
-df_current_year = df[df["ts"].dt.year == current_year]
+df_selected_year = df[df["ts"].dt.year == selected_year]
 
 # zapobieganie Latexowi w markdownach
-df_current_year["track_name"] = df_current_year["track_name"].str.replace("$", r"\$", regex=False)
-df_current_year["artist_name"] = df_current_year["artist_name"].str.replace("$", r"\$", regex=False)
+df_selected_year["track_name"] = df_selected_year["track_name"].str.replace("$", r"\$", regex=False)
+df_selected_year["artist_name"] = df_selected_year["artist_name"].str.replace("$", r"\$", regex=False)
 
 # metryki
 
 # czas
-total_ms = df_current_year["ms_played"].sum()
+total_ms = df_selected_year["ms_played"].sum()
 
 total_minutes = int(total_ms // 60_000)
 total_hours = total_minutes // 60
@@ -38,15 +56,13 @@ remaining_hours = total_hours % 24
 remaining_minutes = total_minutes % 60
 
 # unikalni artysci i piosenki
-unique_artists = df_current_year["artist_name"].nunique()
+unique_artists = df_selected_year["artist_name"].nunique()
 
-unique_tracks = df_current_year.groupby(["track_name", "artist_name"]).ngroups
+unique_tracks = df_selected_year.groupby(["track_name", "artist_name"]).ngroups
 
 # unikalne dni słuchania
-days_of_listening = df_current_year["ts"].dt.date.nunique()
+days_of_listening = df_selected_year["ts"].dt.date.nunique()
 
-
-st.title("Early Spotify Wrapped")
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -63,7 +79,10 @@ with col3:
     st.metric("Unique tracks", unique_tracks)
 
 with col4:
-    st.metric("Days of listening", f"{days_of_listening}/{day_of_year}")
+    if selected_year == current_year:
+        st.metric("Days of listening", f"{days_of_listening}/{day_of_year}")
+    else:
+        st.metric("Days of listening", f"{days_of_listening}/{366 if selected_year % 4 == 0 else 365}")
 
 st.divider()
 
@@ -71,21 +90,19 @@ st.divider()
 
 # top artysci
 top_artists = (
-    df_current_year.groupby("artist_name")
+    df_selected_year.groupby("artist_name")
     .agg(ms_sum=("ms_played", "sum"))
     .reset_index()
     .sort_values("ms_sum", ascending=False)
-    .head(5)
 )
 
 # top piosenki
 top_tracks = (
-    df_current_year
+    df_selected_year
     .groupby(["track_name", "artist_name"])
     .agg(plays=("ms_played", "count"))
     .reset_index()
     .sort_values("plays", ascending=False)
-    .head(5)
 )
 
 # najczesciej sluchani artysci/utwory
@@ -117,19 +134,19 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Your top artists")
-    for i, row in enumerate(top_artists.itertuples(), start=1):
+    for i, row in enumerate(top_artists.head(5).itertuples(), start=1):
         st.markdown(f"**{i}** &nbsp;&nbsp; {row.artist_name}")
 
 with col2:
     st.subheader("Your top songs")
-    for i, row in enumerate(top_tracks.itertuples(), start=1):
+    for i, row in enumerate(top_tracks.head(5).itertuples(), start=1):
         st.markdown(f"**{i}** &nbsp;&nbsp; {row.track_name}")
 
 st.divider()
 
 # biggest listening day
 biggest_day = (
-    df_current_year.groupby(df_current_year["ts"].dt.date)
+    df_selected_year.groupby(df_selected_year["ts"].dt.date)
     .agg(minutes=("ms_played", "sum"))
     .reset_index()
     .sort_values("minutes", ascending=False)
@@ -152,16 +169,14 @@ st.markdown(
 
 st.divider()
 
-col1, col2 = st.columns(2)
-
 # bar plot z miesiącami
 all_months = pd.DataFrame({
     "month_num": range(1, 13),
-    "month": [datetime(current_year, m, 1).strftime("%B") for m in range(1, 13)]
+    "month": [datetime(selected_year, m, 1).strftime("%B") for m in range(1, 13)]
 })
 
 monthly = (
-    df_current_year.groupby(df_current_year["ts"].dt.month)
+    df_selected_year.groupby(df_selected_year["ts"].dt.month)
     .agg(minutes=("ms_played", "sum"))
     .reset_index()
     .rename(columns={"ts": "month_num"})
@@ -196,7 +211,7 @@ fig_monthly.update_traces(
 weekday_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 weekly = (
-    df_current_year.groupby(df_current_year["ts"].dt.day_name())
+    df_selected_year.groupby(df_selected_year["ts"].dt.day_name())
     .agg(minutes=("ms_played", "sum"))
     .reset_index()
     .rename(columns={"ts": "weekday"})
@@ -229,6 +244,7 @@ fig_weekly.update_traces(
 )
 
 # bar ploty na stronie
+col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Listening by month")
@@ -238,3 +254,36 @@ with col1:
 with col2:
     st.subheader("Listening by day of week")
     st.plotly_chart(fig_weekly, use_container_width=True)
+
+st.divider()
+
+# odkryci artysci
+
+# df z pierwszym odtworzeniem kazdego artysty
+first_seen = (
+    df.groupby("artist_name")["ts"]
+    .min()
+    .reset_index()
+    .rename(columns={"ts": "first_seen"})
+)
+
+# nowi artysci w wybranym roku
+new_artists = first_seen[first_seen["first_seen"].dt.year == selected_year]
+
+new_artists_count = len(new_artists)
+
+# top dokryci artysci
+new_artists_names = set(new_artists["artist_name"])
+top_new_artists = top_artists[top_artists["artist_name"].isin(new_artists_names)]
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("You have discovered")
+    st.markdown(f"## {new_artists_count}")
+    st.markdown("new artists this year")
+
+with col2:
+    st.subheader("Your top newly discovered artists")
+    for i, row in enumerate(top_new_artists.head(5).itertuples(), start=1):
+        st.markdown(f"**{i}** &nbsp;&nbsp; {row.artist_name}")

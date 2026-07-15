@@ -113,8 +113,15 @@ country_df = country_df.dropna(subset=["country_iso3"])
 home_country = country_df.loc[country_df["percent_of_listening"].idxmax(), "conn_country"]
 home_country_name = get_country_name(home_country)
 
-# tytul
+# tytul i opis
 st.title("Where you listened from")
+st.markdown(
+    """
+    Based on your IP address at the time of each play, see which countries 
+    your listening came from. Click a country on the map to explore 
+    your top artists and songs from that location.
+    """
+)
 
 # metryki na poczatku strony
 col1, col2 = st.columns(2)

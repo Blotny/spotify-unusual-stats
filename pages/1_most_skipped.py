@@ -19,8 +19,15 @@ avaible_years = sorted(df["year"].unique())
 if "pills_years" not in st.session_state:
     st.session_state["pills_years"] = avaible_years
 
-# tytul
+# tytul i opis
 st.title("Who you skipped the most")
+st.markdown(
+    """
+    Find out which tracks and artists you skip the most. 
+    Adjust the skip threshold, filter by year, and sort by skip count, 
+    skip rate, or dislike score to see what you really can't stand.
+    """
+)
 
 with st.expander("Filters & sorting", expanded=True):
 
