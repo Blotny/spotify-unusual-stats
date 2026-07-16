@@ -25,4 +25,26 @@ if uploaded_file is not None:
         st.success("Data loaded!")
 
     else:
-        st.write("Waiting for a file...")
+        st.write("Already loaded a file")
+
+
+st.header("Import guide")
+
+st.subheader("1. Request your data")
+st.markdown("1. Open Privacy page on the Spotify website")
+st.markdown('2. Find "Download your data" section')
+st.markdown('3. Select only the box with "Extended streaming history"')
+# zdjecie
+st.markdown('4. Press "Request data" button')
+
+st.subheader("2. Confirm your request")
+st.markdown('Confirm your request via email')
+
+st.subheader("3. Wait until Spotify sends you data")
+st.markdown('Wait for the second email with the download link (usually a few days, officially up to 30)')
+
+st.subheader("4. Download the files")
+st.markdown('You will get an email with a link to download a .zip file')
+
+st.subheader("4. Import your files")
+st.markdown('Import your .zip file here:')
