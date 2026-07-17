@@ -2,7 +2,8 @@
 
 A Streamlit app that turns your Spotify "Extended Streaming History" export into
 statistics you won't find in Spotify Wrapped - adjustable skip detection,
-per-track/artist skip rates, and a world map of where you actually listened from.
+per-track/artist skip rates, a world map of where you listened from,
+and an early preview of your yearly Wrapped including previous years.
 
 ## Features
 
@@ -30,8 +31,10 @@ per-track/artist skip rates, and a world map of where you actually listened from
   and a toggle to hide it (so smaller countries are easier to compare)
 
 
-### Early Spotify Wrapped
-in progress...
+### Early Spotify Wrapped page
+- Your top artists, tracks and new discoveries for any year in your history
+- Listening patterns by month, day of week and hour of day
+- Year-over-year listening history
 
 ## Why some design decisions look the way they do
 
@@ -69,14 +72,16 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env`. Leave `DATABASE_URL` unset to use local SQLite,
-or point it at a Neon Postgres connection string for production-like storage.
+No additional configuration needed — without a `.env` file, the app automatically uses a local SQLite database.
 
 ### Setting up Neon (optional, for persistent/shared storage)
 
 1. Create a free project at [neon.tech](https://neon.tech) (no card required)
 2. Copy the connection string from the dashboard
-3. Paste it into `.env` as `DATABASE_URL` (keep `?sslmode=require` at the end)
+3. Create a `.env` file in the project root and add:
+DATABASE_URL=your_neon_connection_string_here
+
+Keep `?sslmode=require` at the end of the connection string.
 
 ## Getting your Spotify data
 
