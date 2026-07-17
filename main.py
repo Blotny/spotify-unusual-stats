@@ -2,49 +2,84 @@ import streamlit as st
 from etl.pipeline import pipeline
 
 
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="Unusual Spotify Stats",
+    page_icon="🎵",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 st.title("Unusual Spotify Stats")
+st.markdown(
+    "Discover what Spotify Wrapped doesn't show you — upload your data export and explore.")
 
-uploaded_file = st.file_uploader("Load ZIP file from Spotify", type="zip")
+st.divider()
 
-if uploaded_file is not None:
+if "upload_id" not in st.session_state:
+    uploaded_file = st.file_uploader("Load ZIP file from Spotify", type="zip")
 
-    # sprawdzenie czy w sesji jest już plik
-    already_processed = st.session_state.get(
-        "uploaded_filename") == uploaded_file.name
+    if uploaded_file is not None:
 
-    if not already_processed:
-        with st.spinner("Loading..."):
-            upload_id = pipeline(uploaded_file)
+        # sprawdzenie czy w sesji jest już plik
+        already_processed = st.session_state.get(
+            "uploaded_filename") == uploaded_file.name
 
-        # dodanie do sesji upload_id i filename
-        st.session_state["upload_id"] = upload_id
-        st.session_state["uploaded_filename"] = uploaded_file.name
+        if not already_processed:
+            with st.spinner("Loading..."):
+                upload_id = pipeline(uploaded_file)
 
-        st.success("Data loaded!")
+            # dodanie do sesji upload_id i filename
+            st.session_state["upload_id"] = upload_id
+            st.session_state["uploaded_filename"] = uploaded_file.name
 
+            # po załadowaniu danych
+            st.rerun()
+
+        else:
+            st.write("Already loaded a file")
+    # jesli dane nie zaladowane
     else:
-        st.write("Already loaded a file")
+        st.page_link("pages/0_import_guide.py",
+                     label="Don't have your data yet? Check the **Import Guide**")
+
+# jesli dane juz załadowane
+else:
+    st.success(f"Data loaded: **{st.session_state['uploaded_filename']}**")
+
+    col1, col2, col3 = st.columns([3, 1, 3])
+    with col2:
+        if st.button("Upload different file"):
+            del st.session_state["upload_id"]
+            del st.session_state["uploaded_filename"]
+            st.rerun()
 
 
-st.header("Import guide")
+st.divider()
 
-st.subheader("1. Request your data")
-st.markdown("1. Open Privacy page on the Spotify website")
-st.markdown('2. Find "Download your data" section')
-st.markdown('3. Select only the box with "Extended streaming history"')
-# zdjecie
-st.markdown('4. Press "Request data" button')
+st.subheader("What you can explore")
 
-st.subheader("2. Confirm your request")
-st.markdown('Confirm your request via email')
+col1, col2, col3 = st.columns(3)
 
-st.subheader("3. Wait until Spotify sends you data")
-st.markdown('Wait for the second email with the download link (usually a few days, officially up to 30)')
+with col1:
+    st.markdown("### Most Skipped")
+    st.markdown("""
+    Find out which tracks and artists you skip the most. 
+    Maybe it will help you with blocking some songs.
+    """)
+    st.page_link("pages/1_most_skipped.py", label="Go to Most Skipped →")
 
-st.subheader("4. Download the files")
-st.markdown('You will get an email with a link to download a .zip file')
+with col2:
+    st.markdown("### Country Map")
+    st.markdown("""
+    See which countries your listening came from. 
+    Click a country to explore your top artists and songs from that location.
+    """)
+    st.page_link("pages/2_country_map.py", label="Go to Country Map →")
 
-st.subheader("4. Import your files")
-st.markdown('Import your .zip file here:')
+with col3:
+    st.markdown("### Early Wrapped")
+    st.markdown("""
+    See your Spotify Wrapped before it's released — or revisit 
+    any previous year with full data including December.
+    """)
+    st.page_link("pages/3_early_wrapped.py", label="Go to Early Wrapped →")

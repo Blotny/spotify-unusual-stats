@@ -2,13 +2,17 @@ import streamlit as st
 from db.queries import load_events_df
 import plotly.express as px
 import pycountry
+from ui_helpers import require_data
 
 
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="Country map",
+    page_icon="🎵",
+    layout="wide",
+)
 
 if "upload_id" not in st.session_state:
-    st.warning("Load file on main page.")
-    st.stop()
+    require_data()
 
 upload_id = st.session_state["upload_id"]
 

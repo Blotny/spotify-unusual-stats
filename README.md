@@ -105,7 +105,7 @@ or point it at a Neon Postgres connection string for production-like storage.
 ## Running the app
 
 ```bash
-streamlit run main.py
+streamlit run app.py
 ```
 
 Upload the `.zip` file from your Spotify export on the main page, then use the

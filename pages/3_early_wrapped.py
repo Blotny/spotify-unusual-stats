@@ -3,13 +3,17 @@ import pandas as pd
 from db.queries import load_events_df
 from datetime import datetime
 import plotly.express as px
+from ui_helpers import require_data
 
 
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="Early wrapped",
+    page_icon="🎵",
+    layout="wide",
+)
 
 if "upload_id" not in st.session_state:
-    st.warning("Load file on main page.")
-    st.stop()
+    require_data()
 
 upload_id = st.session_state["upload_id"]
 df = load_events_df(upload_id)
