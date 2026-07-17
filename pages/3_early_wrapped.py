@@ -247,17 +247,51 @@ fig_weekly.update_traces(
     hovertemplate="<b>%{x}</b><br>%{y} minutes<extra></extra>"
 )
 
+# bar plot z godzinami
+hourly = (
+    df_selected_year.groupby(df_selected_year["ts"].dt.hour)
+    .agg(minutes=("ms_played", sum))
+    .reset_index()
+    .rename(columns={"ts": "hour"})
+)
+hourly["minutes"] = (hourly["minutes"] / 60000).round(0).astype(int)
+
+fig_hourly = px.bar(
+    hourly,
+    x="hour",
+    y="minutes",
+    color_discrete_sequence=["#1DB954"],
+)
+
+fig_hourly.update_layout(
+    xaxis_title="Hour of day",
+    yaxis_title="Minutes",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(color="white"),
+    margin=dict(l=0, r=0, t=20, b=0),
+    xaxis=dict(tickmode="linear", tick0=0, dtick=1),
+)
+
+fig_hourly.update_traces(
+    hovertemplate="<b>%{x}:00</b><br>%{y} minutes<extra></extra>"
+)
+
 # bar ploty na stronie
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     st.subheader("Listening by month")
-    st.plotly_chart(fig_monthly, use_container_width=True)
+    st.plotly_chart(fig_monthly, width='stretch')
 
 
 with col2:
     st.subheader("Listening by day of week")
-    st.plotly_chart(fig_weekly, use_container_width=True)
+    st.plotly_chart(fig_weekly, width='stretch')
+
+with col3:
+    st.subheader("Listening by hours (hours in UTC)")
+    st.plotly_chart(fig_hourly, width='stretch')
 
 st.divider()
 
@@ -291,3 +325,39 @@ with col2:
     st.subheader("Your top newly discovered artists")
     for i, row in enumerate(top_new_artists.head(5).itertuples(), start=1):
         st.markdown(f"**{i}** &nbsp;&nbsp; {row.artist_name}")
+
+st.divider()
+
+# wykres minut dla kazdego roku
+yearly = (
+    df.groupby(df["ts"].dt.year)
+    .agg(minutes=("ms_played", "sum"))
+    .reset_index()
+    .rename(columns={"ts": "year"})
+)
+yearly["minutes"] = (yearly["minutes"] / 60_000).round(0).astype(int)
+
+fig_yearly = px.line(
+    yearly,
+    x="year",
+    y="minutes",
+    markers=True,
+    color_discrete_sequence=["#1DB954"],
+)
+
+fig_yearly.update_layout(
+    xaxis_title=None,
+    yaxis_title="Minutes",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(color="white"),
+    margin=dict(l=0, r=0, t=20, b=0),
+    xaxis=dict(tickmode="linear", dtick=1),
+)
+
+fig_yearly.update_traces(
+    hovertemplate="<b>%{x}</b><br>%{y} minutes<extra></extra>"
+)
+
+st.subheader("Listening history by year")
+st.plotly_chart(fig_yearly, width='stretch')

@@ -64,10 +64,11 @@ with col1:
     st.markdown("### Most Skipped")
     st.markdown("""
     Find out which tracks and artists you skip the most. 
-    Maybe it will help you with blocking some songs.
+    Maybe it will help you with blocking some content.
     """)
     st.page_link("pages/1_most_skipped.py", label="Go to Most Skipped →")
-
+    st.image("assets/skip_page.png")
+    
 with col2:
     st.markdown("### Country Map")
     st.markdown("""
@@ -75,7 +76,8 @@ with col2:
     Click a country to explore your top artists and songs from that location.
     """)
     st.page_link("pages/2_country_map.py", label="Go to Country Map →")
-
+    st.image("assets/country_map_page.png")
+    
 with col3:
     st.markdown("### Early Wrapped")
     st.markdown("""
@@ -83,3 +85,5 @@ with col3:
     any previous year with full data including December.
     """)
     st.page_link("pages/3_early_wrapped.py", label="Go to Early Wrapped →")
+    st.image("assets/wrapped_page.png")
+    
