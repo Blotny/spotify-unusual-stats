@@ -72,11 +72,11 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-No additional configuration needed — without a `.env` file, the app automatically uses a local SQLite database.
+No additional configuration needed - without a `.env` file, the app automatically uses a local SQLite database.
 
 ### Setting up Neon (optional, for persistent/shared storage)
 
-1. Create a free project at [neon.tech](https://neon.tech) (no card required)
+1. Create a free project at [neon.tech](https://neon.tech)
 2. Copy the connection string from the dashboard
 3. Create a `.env` file in the project root and add:
 DATABASE_URL=your_neon_connection_string_here
@@ -99,7 +99,7 @@ streamlit run app.py
 ```
 
 Upload the `.zip` file from your Spotify export on the main page, then use the
-sidebar to navigate to the stats pages.
+topbar to navigate to the stats pages.
 
 
 ## Known limitations
