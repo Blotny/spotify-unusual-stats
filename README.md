@@ -21,6 +21,7 @@ and an early preview of your yearly Wrapped including previous years.
 - Sort by skip count, skip rate, or a combined "dislike score" (`skips³ / plays²`) that
   balances frequency against sample size
 - Year filter (multi-select pills, with a "select all" shortcut)
+![Most Skipped](assets/skip_page.png)
 
 ### Country Map page
 - Header metrics: total countries visited, detected home country
@@ -29,12 +30,13 @@ and an early preview of your yearly Wrapped including previous years.
   side panel next to the map
 - Bar chart of listening % by country, with automatic home-country detection
   and a toggle to hide it (so smaller countries are easier to compare)
-
+![Country Map](assets/country_map_page.png)
 
 ### Early Spotify Wrapped page
 - Your top artists, tracks and new discoveries for any year in your history
 - Listening patterns by month, day of week and hour of day
 - Year-over-year listening history
+![Early Wrapped](assets/wrapped_page.png)
 
 ## Why some design decisions look the way they do
 
@@ -61,14 +63,47 @@ and an early preview of your yearly Wrapped including previous years.
 ## Project structure
 
 ```
-Not finished yet...
+spotify-unusual-stats/
+├── app.py                        # entry point: streamlit run app.py
+├── ui_helpers.py                 # shared UI components (no-data guard)
+├── requirements.txt
+├── .env.example
+├── .streamlit/
+│   └── config.toml               # dark theme, primary color
+├── assets/                       # screenshots and demo data
+├── pages/
+│   ├── home.py                   # landing page, file upload
+│   ├── 0_import_guide.py         # how to get your Spotify data
+│   ├── 1_most_skipped.py         # skip stats with adjustable threshold
+│   ├── 2_country_map.py          # choropleth map with country drill-down
+│   └── 3_early_wrapped.py        # yearly Wrapped stats and comparisons
+├── db/
+│   ├── models.py                 # SQLAlchemy models (Upload, Event)
+│   ├── session.py                # DB connection, session factory, init_db()
+│   └── queries.py                # shared cached data-loading functions
+└── etl/
+    ├── parser.py                 # ZIP -> raw list of events
+    ├── transform.py              # cleaning, PII removal, dataframe shaping
+    ├── load.py                   # dataframe -> database
+    └── pipeline.py               # orchestrates parser -> transform -> load
 ```
 
 ## Setup
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+```
+
+Activate the virtual environment:
+```bash
+# Linux/macOS
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+```
+
+```bash
 pip install -r requirements.txt
 ```
 
@@ -79,7 +114,9 @@ No additional configuration needed - without a `.env` file, the app automaticall
 1. Create a free project at [neon.tech](https://neon.tech)
 2. Copy the connection string from the dashboard
 3. Create a `.env` file in the project root and add:
+```
 DATABASE_URL=your_neon_connection_string_here
+```
 
 Keep `?sslmode=require` at the end of the connection string.
 
