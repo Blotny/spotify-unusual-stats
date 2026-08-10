@@ -67,7 +67,6 @@ spotify-unusual-stats/
 ├── app.py                        # entry point: streamlit run app.py
 ├── ui_helpers.py                 # shared UI components (no-data guard)
 ├── requirements.txt
-├── .env.example
 ├── .streamlit/
 │   └── config.toml               # dark theme, primary color
 ├── assets/                       # screenshots and demo data
