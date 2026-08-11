@@ -1,5 +1,9 @@
 # Unusual Spotify Stats
 
+![Python](https://img.shields.io/badge/Python-3.12+-blue?logo=python)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.58-red?logo=streamlit)
+![pandas](https://img.shields.io/badge/pandas-2.2.3-blue?logo=pandas)
+
 A Streamlit app that turns your Spotify "Extended Streaming History" export into
 statistics you won't find in Spotify Wrapped - adjustable skip detection,
 per-track/artist skip rates, a world map of where you listened from,
