@@ -199,7 +199,7 @@ fig_bar.update_layout(
     hoverlabel=dict(font_size=14),
 )
 
-st.plotly_chart(fig_bar, use_container_width=True)
+st.plotly_chart(fig_bar, width='stretch')
 
 # sekcja mapy
 fig = px.choropleth(
@@ -246,7 +246,7 @@ with map_col:
     # klikniecie na mape
     event = st.plotly_chart(
         fig,
-        use_container_width=True,
+        width='stretch',
         on_select="rerun",
         key="country_map_chart",
     )
@@ -267,7 +267,7 @@ with stats_col:
         with btn_col1:
             if st.button(
                 "Top artists",
-                use_container_width=True,
+                width='stretch',
                 type="primary" if st.session_state["stats_view"] == "artists" else "secondary",
             ):
                 st.session_state["stats_view"] = "artists"
@@ -275,7 +275,7 @@ with stats_col:
         with btn_col2:
             if st.button(
                 "Top songs",
-                use_container_width=True,
+                width='stretch',
                 type="primary" if st.session_state["stats_view"] == "songs" else "secondary",
             ):
                 st.session_state["stats_view"] = "songs"
@@ -292,7 +292,7 @@ with stats_col:
         # przycisk see more
         _, center, _ = st.columns([1, 1, 1])
         with center:
-            if st.button("See more", key="btn_see_more", use_container_width=True):
+            if st.button("See more", key="btn_see_more", width='stretch'):
                 show_country_details(
                     clicked_country_code,
                     clicked_country_name,

@@ -11,6 +11,13 @@ def extract_streaming_history(zip_path):
             name for name in zf.namelist()
             if "Streaming_History_Audio" in name and name.endswith(".json")
         ]
+
+        if not target_files:
+            raise ValueError(
+                "No Streaming_History_Audio files found. "
+                "Make sure you upload the correct Spotify export with Extended streaming history selected."
+            )
+
         for name in target_files:
             with zf.open(name) as f:
                 events.extend(json.load(f))

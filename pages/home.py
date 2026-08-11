@@ -1,5 +1,6 @@
 import streamlit as st
 from etl.pipeline import pipeline
+import zipfile
 
 
 st.set_page_config(
@@ -26,14 +27,17 @@ if "upload_id" not in st.session_state:
 
         if not already_processed:
             with st.spinner("Loading..."):
-                upload_id = pipeline(uploaded_file)
-
-            # dodanie do sesji upload_id i filename
-            st.session_state["upload_id"] = upload_id
-            st.session_state["uploaded_filename"] = uploaded_file.name
-
-            # po załadowaniu danych
-            st.rerun()
+                try:
+                    upload_id = pipeline(uploaded_file)
+                    st.session_state["upload_id"] = upload_id
+                    st.session_state["uploaded_filename"] = uploaded_file.name
+                    st.rerun()
+                except zipfile.BadZipFile:
+                    st.error("Invalid file — the uploaded file is not a valid ZIP archive.")
+                except ValueError as e:
+                    st.error(str(e))
+                except Exception as e:
+                    st.error(f"Something went wrong: {e}")
 
         else:
             st.write("Already loaded a file")

@@ -47,4 +47,4 @@ with col2:
 st.divider()
 
 st.subheader("4. Upload here")
-st.page_link("main.py", label="← Go back to main page to upload your file")
+st.page_link("pages/home.py", label="← Go back to main page to upload your file")

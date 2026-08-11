@@ -41,7 +41,7 @@ st.markdown(
 selected_year = st.selectbox("Year:", avaible_years)
 
 # df dla tego roku
-df_selected_year = df[df["ts"].dt.year == selected_year]
+df_selected_year = df[df["ts"].dt.year == selected_year].copy()
 
 # zapobieganie Latexowi w markdownach
 df_selected_year["track_name"] = df_selected_year["track_name"].str.replace("$", r"\$", regex=False)
@@ -250,7 +250,7 @@ fig_weekly.update_traces(
 # bar plot z godzinami
 hourly = (
     df_selected_year.groupby(df_selected_year["ts"].dt.hour)
-    .agg(minutes=("ms_played", sum))
+    .agg(minutes=("ms_played", "sum"))
     .reset_index()
     .rename(columns={"ts": "hour"})
 )

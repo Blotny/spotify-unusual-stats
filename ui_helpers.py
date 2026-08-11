@@ -14,6 +14,6 @@ def require_data():
         )
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:
-            st.page_link("main.py", label="Go to Home →", use_container_width=True)
+            st.page_link("pages/home.py", label="Go to Home →", use_container_width=True)
             st.page_link("pages/0_import_guide.py", label="Import Guide →", use_container_width=True)
         st.stop()

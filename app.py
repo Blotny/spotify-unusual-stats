@@ -3,7 +3,7 @@ import streamlit as st
 
 pg = st.navigation(
     [
-        st.Page("main.py", title="Home"),
+        st.Page("pages/home.py", title="Home"),
         st.Page("pages/1_most_skipped.py", title="Most Skipped"),
         st.Page("pages/2_country_map.py", title="Country Map"),
         st.Page("pages/3_early_wrapped.py", title="Early Wrapped"),
