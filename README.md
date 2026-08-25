@@ -3,6 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?logo=python)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.58-red?logo=streamlit)
 ![pandas](https://img.shields.io/badge/pandas-2.2.3-blue?logo=pandas)
+![Docker](https://img.shields.io/badge/Docker-ready-blue?logo=docker)
 
 A Streamlit app that turns your Spotify "Extended Streaming History" export into
 statistics you won't find in Spotify Wrapped - adjustable skip detection,
@@ -16,7 +17,6 @@ and an early preview of your yearly Wrapped including previous years.
 - ETL pipeline: parses the export, strips personal fields (IP address, username),
   filters out podcasts/audiobooks, and loads clean events into a database
 - Deduplication via file hash - re-uploading the same export won't create duplicate data
-- Local dev works out of the box with SQLite; production uses a free Neon (Postgres) database
 
 ### Most Skipped page
 - Most skipped tracks and artists, with adjustable minimum play count to filter out noise
@@ -71,6 +71,7 @@ spotify-unusual-stats/
 ├── app.py                        # entry point: streamlit run app.py
 ├── ui_helpers.py                 # shared UI components (no-data guard)
 ├── requirements.txt
+├── Dockerfile
 ├── .streamlit/
 │   └── config.toml               # dark theme, primary color
 ├── assets/                       # screenshots and demo data
@@ -122,6 +123,19 @@ DATABASE_URL=your_neon_connection_string_here
 ```
 
 Keep `?sslmode=require` at the end of the connection string.
+
+### Docker (alternative setup)
+
+```bash
+docker build -t spotify-unusual-stats .
+docker run -p 8501:8501 spotify-unusual-stats
+```
+
+Then open [localhost:8501](http://localhost:8501) in your browser. To use Neon instead of SQLite, pass the connection string as an environment variable:
+
+```bash
+docker run -p 8501:8501 -e DATABASE_URL=your_neon_connection_string spotify-unusual-stats
+```
 
 ## Getting your Spotify data
 
